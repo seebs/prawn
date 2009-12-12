@@ -63,17 +63,31 @@ module Prawn
         @columns = options[:columns] || 3
         @spacer  = options[:spacer]  || @parent.font_size
         @current_column = 0
+	@indent_fudge = 0
       end
 
       # The column width, not the width of the whole box.  Used to calculate
       # how long a line of text can be.
       #
       def width
-        super / @columns - @spacer
+        spacers = @spacer * (@columns - 1)
+	total = super - spacers + @indent_fudge
+        (total / @columns) - @indent_fudge
+      end
+
+      def indent(left_padding, &block)
+        @x += left_padding
+        @width -= left_padding
+	@indent_fudge += left_padding
+        yield
+      ensure
+        @x -= left_padding
+        @width += left_padding
+	@indent_fudge -= left_padding
       end
 
       def width_of_column
-        width + @spacer
+        width + @spacer + @indent_fudge
       end
 
       # x coordinate of the left edge of the current column
